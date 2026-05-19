@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Clases - Portal Privado{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <h1 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; color: var(--text-main);">Diplomado Inteligencia Artificial Generativa</h1>
+            <p style="color: var(--accent-secondary); font-weight: 600; font-size: 0.95rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-award-fill"></i> Universidad de Carabobo • Cenforpro
+            </p>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">Selecciona una clase para continuar tu aprendizaje.</p>
+        </div>
+        
+        {% if request.user.is_staff %}
+            <a href="{% url 'crear_clase' %}" style="background-color: var(--accent-secondary); color: #0f172a; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: opacity 0.2s;">
+    <i class="bi bi-plus-lg"></i> Añadir Nueva Clase
+</a>
+        {% else %}
+            <div class="notice-badge">
+    <i class="bi bi-calendar-event"></i> Nuevas clases disponibles todos los viernes
+</div>
+        {% endif %}
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="background-color: var(--danger); color: white; padding: 12px; border-radius: 6px; margin-bottom: 25px; text-align: center; font-weight: 500;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="video-grid">
+        
+        {% for clase in clases %}
+            <div style="position: relative;">
+                
+                {% if clase.fecha_estreno <= ahora %}
+                    <a href="{% url 'reproductor' curso_id=clase.curso.id clase_id=clase.id %}" class="video-card">
+                        <div class="thumbnail-container">
+                            <div class="thumbnail-placeholder">
+                                <div class="play-icon"></div>
+                            </div>
+                            <span class="duration-badge">{{ clase.duracion }}</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-date">Viernes, {{ clase.fecha_estreno|date:"d \d\e F \d\e Y" }}</div>
+                            <h3 class="card-title">{{ clase.titulo }}</h3>
+                            <p class="card-desc">{{ clase.descripcion }}</p>
+                            <div class="card-footer">
+                                <span class="module-tag">Clase {{ clase.orden }}</span>
+                                <span style="color: var(--accent-color); font-size: 0.9rem; font-weight: bold;">Ver Clase ➔</span>
+                            </div>
+                        </div>
+                    </a>
+
+                {% else %}
+                    <article class="video-card locked" 
+                             data-fecha="{{ clase.fecha_estreno|date:'l d \d\e F' }}" 
+                             onclick="alert('Esta clase se habilitará automáticamente el ' + this.getAttribute('data-fecha') + '.')">
+                        <div class="thumbnail-container">
+                            <div class="thumbnail-placeholder">
+                                <div class="play-icon"></div>
+                            </div>
+                            <span class="duration-badge">--:--</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-date locked">
+    <i class="bi bi-lock-fill" style="margin-right: 4px;"></i> Disponible: {{ clase.fecha_estreno|date:"l, d \d\e F" }}
+</div>
+                            <h3 class="card-title">{{ clase.titulo }}</h3>
+                            <p class="card-desc">Esta clase aún no se ha impartido. Estará disponible en el portal próximamente.</p>
+                            <div class="card-footer">
+                                <span class="module-tag">Clase {{ clase.orden }}</span>
+                                <span style="color: var(--text-muted); font-size: 0.9rem;">Próximamente</span>
+                            </div>
+                        </div>
+                    </article>
+                {% endif %}
+
+                {% if request.user.is_staff %}
+                    <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 10;">
+    <a href="{% url 'editar_clase' clase.id %}" style="background-color: var(--surface-color); color: var(--text-main); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: background 0.2s;" onmouseover="this.style.backgroundColor='var(--accent-color)'" onmouseout="this.style.backgroundColor='var(--surface-color)'">
+        <i class="bi bi-pencil-square"></i> Editar
+    </a>
+    <a href="{% url 'eliminar_clase' clase.id %}" style="background-color: var(--surface-color); color: var(--danger); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 4px; font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: background 0.2s; color: white;" onmouseover="this.style.backgroundColor='var(--danger)'" onmouseout="this.style.backgroundColor='var(--surface-color)'" onclick="return confirm('¿Seguro que quieres eliminar la {{ clase.titulo }} permanentemente?');">
+        <i class="bi bi-trash3"></i> Borrar
+    </a>
+</div>
+                {% endif %}
+
+            </div>
+        {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                <p style="font-size: 1.2rem; margin-bottom: 8px;">No hay clases disponibles en este momento.</p>
+                <p style="font-size: 0.9rem;">Las clases asignadas aparecerán automáticamente en esta sección.</p>
+            </div>
+        {% endfor %}
+
+    </div>
+</main>
+{% endblock %}

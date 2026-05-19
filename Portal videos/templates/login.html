@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Portal Privado{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; flex: 1; padding: 20px;">
+    <div style="background-color: var(--surface-color); padding: 40px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        
+        <div style="width: 60px; height: 60px; background-color: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; font-size: 24px;">
+            🔒
+        </div>
+
+        <h2 style="margin-bottom: 10px;">Acceso Estudiantes</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px;">Ingresa tus credenciales para continuar</p>
+
+        <form method="post">
+            {% csrf_token %} <div style="margin-bottom: 15px; text-align: left;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Usuario</label>
+                <input type="text" name="username" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; outline: none;" required autofocus>
+            </div>
+            
+            <div style="margin-bottom: 25px; text-align: left;">
+                <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem;">Contraseña</label>
+                <input type="password" name="password" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; outline: none;" required>
+            </div>
+
+            {% if form.errors %}
+                <p style="color: var(--danger); font-size: 0.85rem; margin-bottom: 15px;">Usuario o contraseña incorrectos. Intenta de nuevo.</p>
+            {% endif %}
+            
+            <button type="submit" style="width: 100%; padding: 14px; background-color: var(--accent-color); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background 0.2s;">
+                Entrar al Portal
+            </button>
+
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+    </div>
+</div>
+{% endblock %}

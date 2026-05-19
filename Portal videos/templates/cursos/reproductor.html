@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Clase: {{ clase_actual.titulo }} - Portal Privado{% endblock %}
+
+{% block content %}
+<div class="layout">
+    <main class="main-content">
+        <div class="video-wrapper">
+            
+            <div style="margin-bottom: 18px;">
+                <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">
+                    <i class="bi bi-arrow-left" style="font-size: 1.1rem;"></i> Volver al Dashboard
+                </a>
+            </div>
+
+            <div class="video-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px; background-color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                <iframe 
+                    src="https://player.vimeo.com/video/{{ clase_actual.vimeo_id }}" 
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
+                    frameborder="0" 
+                    allow="autoplay; fullscreen; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+            
+            <div class="lesson-info" style="margin-top: 25px;">
+                <h1 style="font-size: 1.8rem; font-weight: 600; margin-bottom: 10px;">{{ clase_actual.titulo }}</h1>
+                <p style="color: var(--text-muted); line-height: 1.6; font-size: 1rem;">{{ clase_actual.descripcion }}</p>
+            </div>
+        </div>
+    </main>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>{{ curso.titulo }}</h2>
+            
+            <span id="progress-text" style="color: var(--text-muted); font-size: 0.85rem;">Progreso del curso: 0%</span>
+            <div class="progress-bar" style="width: 100%; background-color: var(--border-color); height: 6px; border-radius: 4px; overflow: hidden; margin-top: 8px;">
+                <div id="progress-fill" style="background-color: var(--accent-secondary); height: 100%; width: 0%; transition: width 0.5s ease-out;"></div>
+            </div>
+        </div>
+
+        <ul class="lesson-list">
+            {% for clase in todas_las_clases %}
+                <a href="{% url 'reproductor' curso_id=curso.id clase_id=clase.id %}" 
+                   class="lesson-item {% if clase.id == clase_actual.id %}active{% endif %}">
+                    <div class="lesson-number">{{ clase.orden|stringformat:"02d" }}</div>
+                    <div class="lesson-details">
+                        <h3>{{ clase.titulo }}</h3>
+                        <span>{{ clase.duracion }}</span>
+                    </div>
+                </a>
+            {% endfor %}
+        </ul>
+    </aside>
+</div>
+
+<script src="https://player.vimeo.com/api/player.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Definimos el total de clases del plan de estudio
+        const totalVideos = 10;
+        
+        // Obtenemos el orden de la clase actual renderizada por Django
+        const currentOrder = parseInt("{{ clase_actual.orden }}") || 1;
+        
+        // Calculamos el porcentaje matemático de avance
+        const percentage = Math.min(Math.round((currentOrder / totalVideos) * 100), 100);
+        
+        // Modificamos el DOM dinámicamente
+        document.getElementById("progress-text").innerText = `Progreso del curso: ${percentage}% (${currentOrder} de ${totalVideos} clases)`;
+        document.getElementById("progress-fill").style.width = `${percentage}%`;
+    });
+</script>
+{% endblock %}

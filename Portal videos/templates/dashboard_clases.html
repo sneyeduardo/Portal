@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Clases - Portal Privado{% endblock %}
+
+{% block content %}
+<main class="container">
+    <div class="page-header">
+        <div>
+            <h1>Inteligencia Artificial</h1>
+            <p>Selecciona una clase para continuar tu aprendizaje.</p>
+        </div>
+        <div class="notice-badge">
+            📅 Nuevas clases disponibles todos los viernes
+        </div>
+    </div>
+
+    <div class="video-grid">
+        
+        {% for clase in clases %}
+            <a href="{% url 'reproductor' curso_id=clase.curso.id clase_id=clase.id %}" class="video-card">
+                <div class="thumbnail-container">
+                    <div class="thumbnail-placeholder">
+                        <div class="play-icon"></div>
+                    </div>
+                    <span class="duration-badge">{{ clase.duracion }}</span>
+                </div>
+                <div class="card-content">
+                    <div class="card-date">Viernes, {{ clase.fecha_estreno|date:"d \d\e F \d\e Y" }}</div>
+                    <h3 class="card-title">{{ clase.titulo }}</h3>
+                    <p class="card-desc">{{ clase.descripcion }}</p>
+                    <div class="card-footer">
+                        <span class="module-tag">Clase {{ clase.orden }}</span>
+                        <span style="color: var(--accent-color); font-size: 0.9rem; font-weight: bold;">Ver Clase ➔</span>
+                    </div>
+                </div>
+            </a>
+        {% empty %}
+            <p>No hay clases disponibles en este momento.</p>
+        {% endfor %}
+
+    </div>
+</main>
+{% endblock %}

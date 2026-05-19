@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ accion }} Clase - Portal Privado{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; flex: 1; padding: 40px 20px;">
+    <div style="background-color: var(--surface-color); padding: 40px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+            <h2 style="font-size: 1.4rem; display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 600;">
+                <i class="bi {% if accion == 'Crear' %}bi-plus-circle-fill{% else %}bi-pencil-square{% endif %}" style="color: var(--accent-secondary);"></i>
+                {{ accion }} Clase
+            </h2>
+            <a href="{% url 'dashboard' %}" style="color: var(--text-muted); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; transition: color 0.2s;" onmouseover="this.style.color='var(--text-main)'" onmouseout="this.style.color='var(--text-muted)'">
+                <i class="bi bi-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div style="margin-bottom: 22px;">
+                    <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9rem; font-weight: 500;" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    
+                    <div>
+                        {% if field.name == 'descripcion' %}
+                            <textarea name="{{ field.name }}" id="{{ field.id_for_label }}" rows="4" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; outline: none; font-size: 0.95rem; resize: vertical; font-family: inherit; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-color)'" onblur="this.style.borderColor='var(--border-color)'" required>{{ field.value|default_if_none:"" }}</textarea>
+                        {% elif field.name == 'curso' %}
+                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; outline: none; font-size: 0.95rem; cursor: pointer; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-color)'" onblur="this.style.borderColor='var(--border-color)'" required>
+                                {% for choice in field.field.choices %}
+                                    <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>{{ choice.1 }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <input type="{% if field.name == 'fecha_estreno' %}datetime-local{% elif field.name == 'orden' %}number{% else %}text{% endif %}" name="{{ field.name }}" id="{{ field.id_for_label }}" value="{% if field.value %}{{ field.value|date:'Y-m-d\TH:i' }}{% else %}{{ field.value|default_if_none:'' }}{% endif %}" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--bg-color); color: white; outline: none; font-size: 0.95rem; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--accent-color)'" onblur="this.style.borderColor='var(--border-color)'" required>
+                        {% endif %}
+                    </div>
+
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color: var(--danger); font-size: 0.8rem; margin-top: 6px; margin-bottom: 0; display: flex; align-items: center; gap: 4px;">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ error }}
+                            </p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div style="display: flex; gap: 15px; margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 22px;">
+                <button type="submit" style="flex: 1; padding: 14px; background-color: var(--accent-secondary); color: #0f172a; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <i class="bi bi-cloud-arrow-up-fill"></i> {% if accion == 'Crear' %}Publicar Clase{% else %}Guardar Cambios{% endif %}
+                </button>
+                <a href="{% url 'dashboard' %}" style="flex: 1; padding: 14px; background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; font-weight: bold; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor='transparent'">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
