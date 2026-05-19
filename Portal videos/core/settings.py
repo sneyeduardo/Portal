@@ -85,3 +85,15 @@ LOGIN_REDIRECT_URL = '/'
 
 # A dónde enviar a alguien si intenta entrar a una página prohibida sin iniciar sesión
 LOGIN_URL = '/login/'
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Le decimos a Django que use WhiteNoise para comprimir y cachear el CSS de forma ultra rápida
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
