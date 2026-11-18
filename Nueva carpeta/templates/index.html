@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serie de Fourier - Onda Cuadrada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="max-w-4xl w-full bg-slate-800 rounded-2xl shadow-2xl p-6 border border-slate-700">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-cyan-400">Aproximación de Onda Cuadrada (Series de Fourier)</h1>
+            <p class="text-slate-400 text-sm mt-1">Cálculo realizado en tiempo real desde el backend en Python (NumPy + Flask).</p>
+        </div>
+
+        <!-- Controles -->
+        <div class="flex flex-wrap items-end gap-4 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-700">
+            <div>
+                <label for="harmonicsInput" class="block text-sm font-medium text-slate-300 mb-1">
+                    Armónicos impares máximos (1 - 100):
+                </label>
+                <input type="number" id="harmonicsInput" value="20" min="1" max="100"
+                    class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-2 w-40 focus:outline-none focus:border-cyan-400">
+            </div>
+
+            <button onclick="iniciarAnimacion()" id="btnAnimar"
+                class="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-6 py-2 rounded-lg transition cursor-pointer">
+                ▶ Animar Onda
+            </button>
+
+            <div id="statusBadge" class="ml-auto text-sm font-mono bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 text-cyan-300">
+                Listo para calcular
+            </div>
+        </div>
+
+        <!-- Lienzo de la Gráfica -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <canvas id="fourierChart" height="130"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let chartInstance = null;
+        let animationInterval = null;
+
+        // Inicializar gráfica vacía
+        const ctx = document.getElementById('fourierChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Aproximación de Onda Cuadrada',
+                    data: [],
+                    borderColor: '#22d3ee',
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                animation: false, // Desactivamos animación interna de Chart.js para controlar nuestros frames
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Tiempo (t)', color: '#94a3b8' },
+                        ticks: { color: '#64748b', maxTicksLimit: 10 },
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        min: -1.5,
+                        max: 1.5,
+                        title: { display: true, text: 'Amplitud', color: '#94a3b8' },
+                        ticks: { color: '#64748b' },
+                        grid: { color: '#1e293b' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#e2e8f0' } }
+                }
+            }
+        });
+
+        async function iniciarAnimacion() {
+            const harmonics = document.getElementById('harmonicsInput').value;
+            const statusBadge = document.getElementById('statusBadge');
+            const btnAnimar = document.getElementById('btnAnimar');
+
+            if (animationInterval) clearInterval(animationInterval);
+
+            statusBadge.textContent = "Calculando en Python...";
+            btnAnimar.disabled = true;
+
+            try {
+                // Pedir cálculos al backend en Python
+                const response = await fetch('/api/calcular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ harmonics: harmonics })
+                });
+
+                const result = await response.json();
+                const labels = result.t.map(val => val.toFixed(2));
+                const frames = result.frames;
+
+                chartInstance.data.labels = labels;
+                let currentFrame = 0;
+
+                // Reproducir cuadro por cuadro cada 200ms (igual que tu interval=200)
+                animationInterval = setInterval(() => {
+                    if (currentFrame >= frames.length) {
+                        clearInterval(animationInterval);
+                        btnAnimar.disabled = false;
+                        return;
+                    }
+
+                    const frame = frames[currentFrame];
+                    chartInstance.data.datasets[0].data = frame.y;
+                    chartInstance.update();
+
+                    statusBadge.textContent = `Armónico(s) impares: ${frame.harmonic} / ${frames.length}`;
+                    currentFrame++;
+                }, 200);
+
+            } catch (error) {
+                console.error(error);
+                statusBadge.textContent = "Error al conectar con el servidor";
+                btnAnimar.disabled = false;
+            }
+        }
+
+        // Ejecutar una animación inicial al abrir la página
+        window.onload = iniciarAnimacion;
+    </script>
+</body>
+</html>
