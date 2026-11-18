@@ -134,7 +134,7 @@
                         // Progreso de 0.0 (inicio) a 1.0 (final)
                         const progreso = currentFrame / Math.max(1, frames.length - 1);
                         // Empieza rápido (60ms) y desacelera suavemente hasta 750ms al final
-                        delay = Math.round(60 + Math.pow(progreso, 2) * 690);
+                        delay = Math.round(300 + Math.pow(progreso, 2) * 690);
                     }
 
                     statusBadge.textContent = `Armónicos: ${frame.harmonic}/${frames.length} (${delay}ms)`;
