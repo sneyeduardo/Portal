@@ -19,10 +19,21 @@
         <div class="flex flex-wrap items-end gap-4 mb-6 bg-slate-900/60 p-4 rounded-xl border border-slate-700">
             <div>
                 <label for="harmonicsInput" class="block text-sm font-medium text-slate-300 mb-1">
-                    Armónicos impares máximos (1 - 100):
+                    Armónicos impares (1 - 100):
                 </label>
-                <input type="number" id="harmonicsInput" value="20" min="1" max="100"
-                    class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-2 w-40 focus:outline-none focus:border-cyan-400">
+                <input type="number" id="harmonicsInput" value="25" min="1" max="100"
+                    class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-2 w-36 focus:outline-none focus:border-cyan-400">
+            </div>
+
+            <div>
+                <label for="speedMode" class="block text-sm font-medium text-slate-300 mb-1">
+                    Ritmo de animación:
+                </label>
+                <select id="speedMode"
+                    class="bg-slate-800 border border-slate-600 text-white rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-400">
+                    <option value="decelerate" selected>Más lenta al hacerse cuadrada</option>
+                    <option value="constant">Velocidad constante (200ms)</option>
+                </select>
             </div>
 
             <button onclick="iniciarAnimacion()" id="btnAnimar"
@@ -43,9 +54,8 @@
 
     <script>
         let chartInstance = null;
-        let animationInterval = null;
+        let animationTimeout = null;
 
-        // Inicializar gráfica vacía
         const ctx = document.getElementById('fourierChart').getContext('2d');
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -62,7 +72,7 @@
             },
             options: {
                 responsive: true,
-                animation: false, // Desactivamos animación interna de Chart.js para controlar nuestros frames
+                animation: false,
                 scales: {
                     x: {
                         title: { display: true, text: 'Tiempo (t)', color: '#94a3b8' },
@@ -85,16 +95,16 @@
 
         async function iniciarAnimacion() {
             const harmonics = document.getElementById('harmonicsInput').value;
+            const speedMode = document.getElementById('speedMode').value;
             const statusBadge = document.getElementById('statusBadge');
             const btnAnimar = document.getElementById('btnAnimar');
 
-            if (animationInterval) clearInterval(animationInterval);
+            if (animationTimeout) clearTimeout(animationTimeout);
 
             statusBadge.textContent = "Calculando en Python...";
             btnAnimar.disabled = true;
 
             try {
-                // Pedir cálculos al backend en Python
                 const response = await fetch('/api/calcular', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -108,10 +118,8 @@
                 chartInstance.data.labels = labels;
                 let currentFrame = 0;
 
-                // Reproducir cuadro por cuadro cada 200ms (igual que tu interval=200)
-                animationInterval = setInterval(() => {
+                function reproducirCuadro() {
                     if (currentFrame >= frames.length) {
-                        clearInterval(animationInterval);
                         btnAnimar.disabled = false;
                         return;
                     }
@@ -120,9 +128,22 @@
                     chartInstance.data.datasets[0].data = frame.y;
                     chartInstance.update();
 
-                    statusBadge.textContent = `Armónico(s) impares: ${frame.harmonic} / ${frames.length}`;
+                    // Calcular el tiempo de espera antes del siguiente cuadro
+                    let delay = 200;
+                    if (speedMode === 'decelerate') {
+                        // Progreso de 0.0 (inicio) a 1.0 (final)
+                        const progreso = currentFrame / Math.max(1, frames.length - 1);
+                        // Empieza rápido (60ms) y desacelera suavemente hasta 750ms al final
+                        delay = Math.round(60 + Math.pow(progreso, 2) * 690);
+                    }
+
+                    statusBadge.textContent = `Armónicos: ${frame.harmonic}/${frames.length} (${delay}ms)`;
                     currentFrame++;
-                }, 200);
+
+                    animationTimeout = setTimeout(reproducirCuadro, delay);
+                }
+
+                reproducirCuadro();
 
             } catch (error) {
                 console.error(error);
@@ -131,7 +152,6 @@
             }
         }
 
-        // Ejecutar una animación inicial al abrir la página
         window.onload = iniciarAnimacion;
     </script>
 </body>
